@@ -12,9 +12,9 @@ Rules:
 Output format: first line "SUMMARY: <one short sentence of what you built/changed>", then the HTML starting with <!DOCTYPE html>. No markdown fences.`;
 
 export const generateApp = createServerFn({ method: "POST" })
-  .inputValidator((d: { prompt: string; currentHtml?: string }) => {
+  .inputValidator((d: { prompt: string; currentHtml: string }) => {
     if (typeof d?.prompt !== "string" || !d.prompt.trim() || d.prompt.length > 4000) throw new Error("Invalid prompt");
-    return { prompt: d.prompt, currentHtml: typeof d.currentHtml === "string" ? d.currentHtml.slice(0, 200_000) : undefined };
+    return { prompt: d.prompt, currentHtml: typeof d.currentHtml === "string" ? d.currentHtml.slice(0, 200_000) : "" };
   })
   .handler(async ({ data }) => {
     const input = data.currentHtml

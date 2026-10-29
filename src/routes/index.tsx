@@ -73,7 +73,7 @@ function Workspace() {
     let i = 0;
     const timer = setInterval(() => { i = Math.min(i + 1, STEPS.length - 1); setStep(i); }, 2500);
     try {
-      const res = await generate({ data: { prompt: text, currentHtml: files["/index.html"] } });
+      const res = await generate({ data: { prompt: text, currentHtml: files["/index.html"] ?? "" } });
       if (!res.ok) { setMsgs((m) => [...m, { role: "ai", text: res.error }]); return; }
       setFiles({ "/index.html": res.html });
       setTabs(["/index.html"]);
