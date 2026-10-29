@@ -224,7 +224,7 @@ function Workspace() {
                   {tabs.map((t) => (
                     <div key={t} className={`group flex shrink-0 items-center gap-1.5 border-r border-border px-3 py-1.5 text-xs ${t === active ? "bg-background text-foreground" : "text-muted-foreground"}`}>
                       <button onClick={() => setActive(t)} className="flex items-center gap-1.5"><FileCode2 size={12} className="text-accent" />{t.split("/").pop()}</button>
-                      {tabs.length > 1 && <button aria-label="Close tab" onClick={() => { const n = tabs.filter((x) => x !== t); setTabs(n); if (active === t) setActive(n[0]); }} className="opacity-50 hover:opacity-100"><X size={11} /></button>}
+                      {tabs.length > 1 && <button aria-label="Close tab" onClick={() => { const n = tabs.filter((x) => x !== t); setTabs(n); if (active === t && n[0]) setActive(n[0]); }} className="opacity-50 hover:opacity-100"><X size={11} /></button>}
                     </div>
                   ))}
                 </div>

@@ -61,7 +61,7 @@ export function interpretPrompt(prompt: string, current: AppSpec): { spec: AppSp
   if (/\blight\b/.test(p)) { spec.dark = false; changes.push("Light mode"); }
   if (/\bdark\b/.test(p)) { spec.dark = true; changes.push("Dark mode"); }
   const named = prompt.match(/(?:called|named|title)\s+["']?([\w\s-]{2,30}?)["']?(?:$|[.,!])/i);
-  if (named) { spec.title = named[1].trim(); changes.push(`Renamed to "${spec.title}"`); }
+  if (named) { spec.title = (named[1] ?? "").trim(); changes.push(`Renamed to "${spec.title}"`); }
   if (!changes.length) changes.push("Refined layout and spacing");
   return { spec, changes };
 }
