@@ -79,8 +79,7 @@ function Workspace() {
       setTabs(["/index.html"]);
       setActive("/index.html");
       setInspect(false);
-      const label = MODELS.find((m) => m.id === model)?.label;
-      setMsgs((m) => [...m, { role: "ai", text: `${label}: ${res.summary}` }]);
+      setMsgs((m) => [...m, { role: "ai", text: res.summary }]);
       log(`HMR update · index.html (${Math.round(res.html.length / 1024)} KB)`, "info");
       setMobilePane("canvas");
       setView("preview");
