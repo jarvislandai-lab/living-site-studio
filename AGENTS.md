@@ -9,4 +9,4 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Builder generation is simulated client-side: `src/lib/workspace.ts` interprets prompts into an AppSpec and generates the virtual file map; `PreviewApp` renders the live app from the spec. Why: keeps preview instant until a real AI backend is added.
+- Builder generation is real AI: `generateApp` in `src/lib/generate.functions.ts` returns one self-contained `/index.html` (Tailwind CDN + vanilla JS) rendered in a sandboxed iframe; follow-up prompts send the current HTML for edits. The `workspace.ts`/`PreviewApp` spec demo shows only before the first generation. Why: a single HTML file previews instantly without a bundler.
