@@ -36,7 +36,7 @@ function Workspace() {
   const [files, setFiles] = useState<FileMap>(() => generateFiles(DEFAULT_SPEC));
   const [active, setActive] = useState("/src/App.tsx");
   const [tabs, setTabs] = useState<string[]>(["/src/App.tsx"]);
-  const [model, setModel] = useState<ModelId>("gemini-3.5-flash");
+  const [model, setModel] = useState<ModelId>("google/gemini-3.8-flash");
   const [prompt, setPrompt] = useState("");
   const [msgs, setMsgs] = useState<Msg[]>([{ role: "ai", text: "Your Nova Store project is ready. Try “Add emerald theme” or “Switch to Kanban view”." }]);
   const [step, setStep] = useState(-1);
@@ -73,7 +73,7 @@ function Workspace() {
     let i = 0;
     const timer = setInterval(() => { i = Math.min(i + 1, STEPS.length - 1); setStep(i); }, 2500);
     try {
-      const res = await generate({ data: { prompt: text, currentHtml: files["/index.html"] ?? "" } });
+      const res = await generate({ data: { prompt: text, currentHtml: files["/index.html"] ?? "", model } });
       if (!res.ok) { setMsgs((m) => [...m, { role: "ai", text: res.error }]); return; }
       setFiles({ "/index.html": res.html });
       setTabs(["/index.html"]);
