@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Builder generation is simulated client-side: `src/lib/workspace.ts` interprets prompts into an AppSpec and generates the virtual file map; `PreviewApp` renders the live app from the spec. Why: keeps preview instant until a real AI backend is added.
