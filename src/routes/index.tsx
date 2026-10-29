@@ -62,29 +62,31 @@ function Workspace() {
     setMobilePane("canvas");
   };
 
-  const run = (text: string) => {
+  const run = async (text: string) => {
     if (!text.trim() || busy) return;
     setMsgs((m) => [...m, { role: "user", text }]);
     setPrompt("");
-    const { spec: next, changes } = interpretPrompt(text, spec);
-    let i = 0;
     setStep(0);
-    const tick = () => {
-      i++;
-      if (i < STEPS.length) { setStep(i); setTimeout(tick, 550); return; }
-      const nf = generateFiles(next);
-      setSpec(next);
-      setFiles(nf);
-      setTabs((t) => { const keep = t.filter((f) => nf[f]); return keep.length ? keep : ["/src/App.tsx"]; });
-      setActive((a) => (nf[a] ? a : "/src/App.tsx"));
-      setStep(-1);
+    let i = 0;
+    const timer = setInterval(() => { i = Math.min(i + 1, STEPS.length - 1); setStep(i); }, 2500);
+    try {
+      const res = await generate({ data: { prompt: text, currentHtml: files["/index.html"] } });
+      if (!res.ok) { setMsgs((m) => [...m, { role: "ai", text: res.error }]); return; }
+      setFiles({ "/index.html": res.html });
+      setTabs(["/index.html"]);
+      setActive("/index.html");
+      setInspect(false);
       const label = MODELS.find((m) => m.id === model)?.label;
-      setMsgs((m) => [...m, { role: "ai", text: `${label}: ${changes.join(" · ")}. Generated ${Object.keys(nf).length} files.` }]);
-      log(`HMR update · ${Object.keys(nf).length} modules`, "info");
+      setMsgs((m) => [...m, { role: "ai", text: `${label}: ${res.summary}` }]);
+      log(`HMR update · index.html (${Math.round(res.html.length / 1024)} KB)`, "info");
       setMobilePane("canvas");
       setView("preview");
-    };
-    setTimeout(tick, 550);
+    } catch {
+      setMsgs((m) => [...m, { role: "ai", text: "Generation failed. Please try again." }]);
+    } finally {
+      clearInterval(timer);
+      setStep(-1);
+    }
   };
 
   const tree = buildTree(Object.keys(files));
@@ -213,7 +215,11 @@ function Workspace() {
                     onMouseOver={onPreviewOver}
                     onClickCapture={onPreviewClick}
                   >
-                    <PreviewApp spec={spec} log={(m) => log(m)} onToggleDark={() => setSpec((s) => ({ ...s, dark: !s.dark }))} />
+                    {files["/index.html"] ? (
+                      <iframe title="App preview" srcDoc={files["/index.html"]} sandbox="allow-scripts allow-forms allow-modals allow-popups" className="h-full min-h-[600px] w-full border-0 bg-pv-surface" />
+                    ) : (
+                      <PreviewApp spec={spec} log={(m) => log(m)} onToggleDark={() => setSpec((s) => ({ ...s, dark: !s.dark }))} />
+                    )}
                   </div>
                   {inspect && hovered && <div className="absolute bottom-2 left-2 z-20 rounded-md bg-accent px-2 py-1 font-mono text-[11px] text-accent-foreground">&lt;{hovered} /&gt;</div>}
                 </div>
