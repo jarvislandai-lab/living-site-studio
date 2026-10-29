@@ -5,11 +5,13 @@ import {
   MousePointer2, Terminal, Check, Loader2, MessageSquare, X, Trash2, LayoutTemplate,
 } from "lucide-react";
 import {
-  DEFAULT_SPEC, MODELS, STEPS, TEMPLATES, generateFiles, interpretPrompt,
+  DEFAULT_SPEC, MODELS, STEPS, TEMPLATES, generateFiles,
   type AppSpec, type FileMap, type ModelId,
 } from "@/lib/workspace";
 import { PreviewApp } from "@/components/builder/PreviewApp";
 import { CodeEditor } from "@/components/builder/CodeEditor";
+import { useServerFn } from "@tanstack/react-start";
+import { generateApp } from "@/lib/generate.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -46,6 +48,7 @@ function Workspace() {
   const [logs, setLogs] = useState<{ t: string; m: string; lvl: "info" | "event" }[]>([]);
   const [mobilePane, setMobilePane] = useState<"chat" | "canvas">("chat");
   const busy = step >= 0;
+  const generate = useServerFn(generateApp);
   const chatEnd = useRef<HTMLDivElement>(null);
   const hoverEl = useRef<Element | null>(null);
 
@@ -162,7 +165,7 @@ function Workspace() {
                   onChange={(e) => setPrompt(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); run(prompt); } }}
                   rows={2}
-                  placeholder="Describe what to build or change…"
+                  placeholder="Describe any app — e.g. “A pomodoro timer with stats”"
                   className="w-full resize-none bg-transparent px-3 pt-2.5 text-sm outline-none placeholder:text-muted-foreground"
                 />
                 <div className="flex items-center justify-between px-2 pb-2">
