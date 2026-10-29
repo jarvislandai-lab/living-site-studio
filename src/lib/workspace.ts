@@ -1,6 +1,6 @@
 export type AppKind = "dashboard" | "store" | "kanban";
 export type Theme = "violet" | "emerald" | "cyan" | "rose" | "amber";
-export type ModelId = "gemini-3.5-flash" | "claude-3.5-sonnet" | "gpt-4o";
+export type ModelId = "google/gemini-3.8-flash" | "anthropic/claude-sonnet-5" | "openai/gpt-6-astra";
 
 export interface AppSpec {
   kind: AppKind;
@@ -10,9 +10,9 @@ export interface AppSpec {
 }
 
 export const MODELS: { id: ModelId; label: string }[] = [
-  { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash" },
-  { id: "claude-3.5-sonnet", label: "Claude 3.5 Sonnet" },
-  { id: "gpt-4o", label: "GPT-4o" },
+  { id: "google/gemini-3.8-flash", label: "Gemini 3.8 Flash" },
+  { id: "anthropic/claude-sonnet-5", label: "Claude Sonnet 5" },
+  { id: "openai/gpt-6-astra", label: "GPT-6 Astra" },
 ];
 
 export const TEMPLATES: { label: string; prompt: string }[] = [
