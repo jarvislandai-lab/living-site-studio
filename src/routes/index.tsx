@@ -77,6 +77,8 @@ function Workspace() {
       const res = await generate({ data: { prompt: text, currentHtml: "", model } });
       if (!res.ok) { setMsgs((m) => [...m, { role: "ai", text: res.error }]); return; }
       setFiles(res.files);
+      const title = res.files["/index.html"]?.match(/<title>([^<]*)<\/title>/i)?.[1]?.split(/[—|-]/)[0]?.trim();
+      if (title) setSpec((s) => ({ ...s, title }));
       setTabs(Object.keys(res.files));
       setActive("/index.html");
       setInspect(false);
