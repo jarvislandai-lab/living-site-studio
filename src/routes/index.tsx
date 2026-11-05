@@ -5,13 +5,14 @@ import {
   MousePointer2, Terminal, Check, Loader2, MessageSquare, X, Trash2, LayoutTemplate,
 } from "lucide-react";
 import {
-  DEFAULT_SPEC, MODELS, STEPS, TEMPLATES, generateFiles,
+  DEFAULT_SPEC, MODELS, STEPS, generateFiles,
   type AppSpec, type FileMap, type ModelId,
 } from "@/lib/workspace";
 import { PreviewApp } from "@/components/builder/PreviewApp";
 import { CodeEditor } from "@/components/builder/CodeEditor";
 import { useServerFn } from "@tanstack/react-start";
 import { generateApp } from "@/lib/generate.functions";
+import { STARTER_TEMPLATES } from "@/lib/templates";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -91,6 +92,17 @@ function Workspace() {
     }
   };
 
+  const loadTemplate = (t: { label: string; title: string; html: string }) => {
+    setFiles({ "/index.html": t.html });
+    setTabs(["/index.html"]);
+    setActive("/index.html");
+    setSpec((s) => ({ ...s, title: t.title }));
+    setMsgs((m) => [...m, { role: "ai", text: `Loaded the ${t.label} template. Ask for any change and I'll edit it.` }]);
+    log(`Template loaded · ${t.label}`, "info");
+    setView("preview");
+    setMobilePane("canvas");
+  };
+
   const tree = buildTree(Object.keys(files));
 
   const onPreviewOver = (e: React.MouseEvent) => {
@@ -152,8 +164,8 @@ function Workspace() {
             </div>
             <div className="border-t border-border p-3">
               <div className="mb-2 flex flex-wrap gap-1.5">
-                {TEMPLATES.map((t) => (
-                  <button key={t.label} disabled={busy} onClick={() => run(t.prompt)} className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition hover:border-accent hover:text-accent disabled:opacity-40">
+                {STARTER_TEMPLATES.map((t) => (
+                  <button key={t.label} disabled={busy} onClick={() => loadTemplate(t)} className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition hover:border-accent hover:text-accent disabled:opacity-40">
                     <LayoutTemplate size={11} />{t.label}
                   </button>
                 ))}
