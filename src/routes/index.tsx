@@ -324,5 +324,5 @@ function bundle(files: FileMap): string {
   const norm = (p: string) => "/" + p.replace(/^\.?\//, "");
   return (files["/index.html"] ?? "")
     .replace(/<link[^>]*href=["']([^"':]+\.css)["'][^>]*>/gi, (t, h) => files[norm(h)] != null ? `<style>${files[norm(h)]}</style>` : t)
-    .replace(/<script([^>]*)src=["']([^"':]+\.js)["']([^>]*)><\/script>/gi, (t, a, h, b) => files[norm(h)] != null ? `<script${a}${b}>${files[norm(h)].replace(/<\/script/gi, "<\\/script")}</script>` : t);
+    .replace(/<script([^>]*)src=["']([^"':]+\.js)["']([^>]*)><\/script>/gi, (t, a, h, b) => files[norm(h)] != null ? `<script${a}${b}>${(files[norm(h)] ?? "").replace(/<\/script/gi, "<\\/script")}</script>` : t);
 }

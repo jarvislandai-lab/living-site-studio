@@ -28,7 +28,8 @@ export const generateApp = createServerFn({ method: "POST" })
       const files: Record<string, string> = {};
       const parts = text.split(/^=== FILE:\s*(\S+)\s*===\s*$/m);
       for (let i = 1; i < parts.length; i += 2) {
-        const path = parts[i].startsWith("/") ? parts[i] : "/" + parts[i];
+        const raw = parts[i] ?? "";
+        const path = raw.startsWith("/") ? raw : "/" + raw;
         files[path] = (parts[i + 1] ?? "").replace(/^```\w*\s*|```\s*$/g, "").trim() + "\n";
       }
       if (!files["/index.html"]) {
