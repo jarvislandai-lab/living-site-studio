@@ -4,15 +4,15 @@ import { generateResponse, generateChatCompletion, generateMessage, GatewayError
 const ALLOWED = ["google/gemini-3.8-flash", "anthropic/claude-sonnet-5", "openai/gpt-6-astra"] as const;
 type Allowed = (typeof ALLOWED)[number];
 
-const SYSTEM = `You are an expert web app builder (like Lovable or Bolt). The user describes an app or a change.
-Return ONE complete, self-contained HTML document that implements it.
+const SYSTEM = `You are an expert web app builder (like Lovable or Bolt). The user describes an app. Build it from scratch as a small multi-file project.
 Rules:
-- Load Tailwind via <script src="https://cdn.tailwindcss.com"></script>. Google Fonts allowed via <link>.
-- All interactivity in vanilla JS inside <script> tags. No build step, no imports from local files.
-- Make it polished, modern, responsive and fully working (real state, buttons do things). Use realistic content.
-- Images: use https://images.unsplash.com/... or https://picsum.photos URLs.
-- If CURRENT HTML is given, modify it to apply the request and keep everything else.
-Output format: first line "SUMMARY: <one short sentence of what you built/changed>", then the HTML starting with <!DOCTYPE html>. No markdown fences.`;
+- Files: /index.html (markup only, loads Tailwind via <script src="https://cdn.tailwindcss.com"></script>, links ./styles.css and loads ./app.js at the end of body), /styles.css (custom CSS incl. :root color variables), /app.js (all vanilla JS). You may add more /js/*.js or /css/*.css files if useful; reference them with relative paths.
+- COLORS: read the color/theme words in the prompt (e.g. "emerald", "dark", "sunset orange", "pastel") and build a matching palette as CSS variables in styles.css, used consistently. If no colors are mentioned, pick a tasteful palette that fits the app.
+- Polished, modern, responsive, fully working (real state, buttons do things), realistic content. Images: https://images.unsplash.com/... or https://picsum.photos.
+Output format: first line "SUMMARY: <one short sentence>". Then each file as:
+=== FILE: /path ===
+<content>
+No markdown fences.`;
 
 export const generateApp = createServerFn({ method: "POST" })
   .inputValidator((d: { prompt: string; currentHtml: string; model: string }) => {
@@ -21,17 +21,22 @@ export const generateApp = createServerFn({ method: "POST" })
     return { model, prompt: d.prompt, currentHtml: typeof d.currentHtml === "string" ? d.currentHtml.slice(0, 200_000) : "" };
   })
   .handler(async ({ data }) => {
-    const input = data.currentHtml
-      ? `CURRENT HTML:\n${data.currentHtml}\n\nREQUEST: ${data.prompt}`
-      : `REQUEST: ${data.prompt}`;
-    try {
-      const text = await callModel(data.model, input);
+        try {
+      const text = await callModel(data.model, `REQUEST: ${data.prompt}`);
       const m = text.match(/SUMMARY:\s*(.*)/);
       const summary = m?.[1]?.trim() || "Generated your app.";
-      const start = text.search(/<!DOCTYPE html>|<html/i);
-      if (start < 0) return { ok: false as const, error: "The AI didn't return a page. Try rephrasing." };
-      const html = text.slice(start).replace(/```\s*$/, "").trim();
-      return { ok: true as const, html, summary };
+      const files: Record<string, string> = {};
+      const parts = text.split(/^=== FILE:\s*(\S+)\s*===\s*$/m);
+      for (let i = 1; i < parts.length; i += 2) {
+        const path = parts[i].startsWith("/") ? parts[i] : "/" + parts[i];
+        files[path] = (parts[i + 1] ?? "").replace(/^```\w*\s*|```\s*$/g, "").trim() + "\n";
+      }
+      if (!files["/index.html"]) {
+        const start = text.search(/<!DOCTYPE html>|<html/i);
+        if (start < 0) return { ok: false as const, error: "The AI didn't return a page. Try rephrasing." };
+        files["/index.html"] = text.slice(start).trim();
+      }
+      return { ok: true as const, files, summary };
     } catch (e) {
       console.error("generateApp failed", e);
       if (e instanceof GatewayError) {

@@ -74,14 +74,14 @@ function Workspace() {
     let i = 0;
     const timer = setInterval(() => { i = Math.min(i + 1, STEPS.length - 1); setStep(i); }, 2500);
     try {
-      const res = await generate({ data: { prompt: text, currentHtml: files["/index.html"] ?? "", model } });
+      const res = await generate({ data: { prompt: text, currentHtml: "", model } });
       if (!res.ok) { setMsgs((m) => [...m, { role: "ai", text: res.error }]); return; }
-      setFiles({ "/index.html": res.html });
-      setTabs(["/index.html"]);
+      setFiles(res.files);
+      setTabs(Object.keys(res.files));
       setActive("/index.html");
       setInspect(false);
       setMsgs((m) => [...m, { role: "ai", text: res.summary }]);
-      log(`HMR update · index.html (${Math.round(res.html.length / 1024)} KB)`, "info");
+      log(`Created ${Object.keys(res.files).length} files · ${Object.keys(res.files).join(", ")}`, "info");
       setMobilePane("canvas");
       setView("preview");
     } catch {
@@ -230,7 +230,7 @@ function Workspace() {
                     onClickCapture={onPreviewClick}
                   >
                     {files["/index.html"] ? (
-                      <iframe title="App preview" srcDoc={files["/index.html"]} sandbox="allow-scripts allow-forms allow-modals allow-popups" className="h-full min-h-[600px] w-full border-0 bg-pv-surface" />
+                      <iframe title="App preview" srcDoc={bundle(files)} sandbox="allow-scripts allow-forms allow-modals allow-popups" className="h-full min-h-[600px] w-full border-0 bg-pv-surface" />
                     ) : (
                       <PreviewApp spec={spec} log={(m) => log(m)} onToggleDark={() => setSpec((s) => ({ ...s, dark: !s.dark }))} />
                     )}
@@ -315,4 +315,12 @@ function TreeView({ node, depth, active, onOpen }: { node: Node; depth: number; 
       ))}
     </>
   );
+}
+
+// Inline local CSS/JS files into index.html so the sandboxed preview can run multi-file projects.
+function bundle(files: FileMap): string {
+  const norm = (p: string) => "/" + p.replace(/^\.?\//, "");
+  return (files["/index.html"] ?? "")
+    .replace(/<link[^>]*href=["']([^"':]+\.css)["'][^>]*>/gi, (t, h) => files[norm(h)] != null ? `<style>${files[norm(h)]}</style>` : t)
+    .replace(/<script([^>]*)src=["']([^"':]+\.js)["']([^>]*)><\/script>/gi, (t, a, h, b) => files[norm(h)] != null ? `<script${a}${b}>${files[norm(h)].replace(/<\/script/gi, "<\\/script")}</script>` : t);
 }
